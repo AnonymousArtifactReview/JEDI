@@ -26,12 +26,12 @@ extract_and_move() {
 arch=$(dpkg --print-architecture)
 if [ "$arch" = "amd64" ]; then
   jdk21file="jdk-21_linux-x64_bin.tar.gz"
-  jdk23file="jdk-23_linux-x64_bin.tar.gz"
-  graalvmfile="graalvm-jdk-23_linux-x64_bin.tar.gz"
+  jdk24file="jdk-24_linux-x64_bin.tar.gz"
+  graalvmfile="graalvm-jdk-24_linux-x64_bin.tar.gz"
 elif [ "$arch" = "arm64" ]; then
   jdk21file="jdk-21_linux-aarch64_bin.tar.gz"
-  jdk23file="jdk-23_linux-aarch64_bin.tar.gz"
-  graalvmfile="graalvm-jdk-23_linux-aarch64_bin.tar.gz"
+  jdk24file="jdk-24_linux-aarch64_bin.tar.gz"
+  graalvmfile="graalvm-jdk-24_linux-aarch64_bin.tar.gz"
 else
   echo "Unsupported architecture: $arch"
 fi
@@ -40,11 +40,9 @@ mkdir -p "$JVM_DIR"
 
 rm *.gz
 
-wget_or_exit "https://download.oracle.com/java/21/latest/$jdk21file"
-wget_or_exit "https://download.oracle.com/java/23/latest/$jdk23file"
-wget_or_exit "https://download.oracle.com/graalvm/23/latest/$graalvmfile"
+wget_or_exit "https://download.oracle.com/java/24/latest/$jdk24file"
+wget_or_exit "https://download.oracle.com/graalvm/24/latest/$graalvmfile"
 
-extract_and_move $jdk21file $JDK21_DIR
-extract_and_move $jdk23file $JDK23_DIR
+extract_and_move $jdk24file $JDK_DIR
 extract_and_move $graalvmfile $GRAALVM_DIR
 

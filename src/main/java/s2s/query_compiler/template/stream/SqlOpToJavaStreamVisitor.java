@@ -103,7 +103,7 @@ class SqlOpToJavaStreamVisitor extends CodeTemplateBasedVisitor {
         code = "Arrays.stream(%s)%n".formatted(accessor);
         if(!options.getMultiThreading().isSequential()) {
             code += ".parallel()";
-            if(!options.isOrdered()) {
+            if(options.isUnordered()) {
                 code += ".unordered()";
             }
             code += EOL;
@@ -533,7 +533,7 @@ class SqlOpToJavaStreamVisitor extends CodeTemplateBasedVisitor {
                 code += "\n.values().stream()";
                 if(!options.getMultiThreading().isSequential()) {
                     code += ".parallel()";
-                    if(!options.isOrdered()) {
+                    if(options.isUnordered()) {
                         code += ".unordered()";
                     }
                     code += EOL;

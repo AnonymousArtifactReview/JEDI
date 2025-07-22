@@ -7,6 +7,7 @@ readonly BENCH_SEQUENTIAL_JAR="$BENCH_SEQUENTIAL_FOLDER/target/benchmark.jar"
 readonly BENCH_PARALLEL_JAR="$BENCH_PARALLEL_FOLDER/target/benchmark.jar"
 readonly BENCH_MICRO_RQ1_JAR="$BENCH_MICRO_RQ1_FOLDER/target/benchmark.jar"
 readonly BENCH_MICRO_RQ2_JAR="$BENCH_MICRO_RQ2_FOLDER/target/benchmark.jar"
+readonly BENCH_MICRO_RQ2_DISTINCT_JAR="$BENCH_MICRO_RQ2_DISTINCT_FOLDER/target/benchmark.jar"
 
 # Check that the jvms have been downloaded
 ./check-jvms.sh
@@ -21,8 +22,9 @@ check_bench_exist() {
 }
 check_bench_exist $BENCH_SEQUENTIAL_JAR
 check_bench_exist $BENCH_PARALLEL_JAR
-check_bench_exist $BENCH_MICRO_RQ1
-check_bench_exist $BENCH_MICRO_RQ2
+check_bench_exist $BENCH_MICRO_RQ1_JAR
+check_bench_exist $BENCH_MICRO_RQ2_JAR
+check_bench_exist $BENCH_MICRO_RQ2_DISTINCT_JAR
 
 
 mkdir -p $BENCH_RESULTS
@@ -74,7 +76,7 @@ run_tpch() {
 
 # Run sequential benchmarks
 echo "Running sequential benchmarks (JDK)"
-JAVA_HOME=$JDK23_DIR \
+JAVA_HOME=$JDK_DIR \
   JAR=$BENCH_SEQUENTIAL_JAR \
   FNAME=$BENCH_RESULTS/sequential-jdk.json \
   SF=$sf_seq run_tpch \
@@ -89,16 +91,26 @@ JAVA_HOME=$GRAALVM_DIR \
 
 # Run parallel benchmarks
 echo "Running parallel benchmarks (JDK)"
-JAVA_HOME=$JDK23_DIR \
+JAVA_HOME=$JDK_DIR \
  JAR=$BENCH_PARALLEL_JAR \
- FNAME=$BENCH_RESULTS/parallel.json \
+ FNAME=$BENCH_RESULTS/parallel-jdk.json \
  SF=$sf_par run_tpch \
  --jvmArgsAppend="-XX:InitialRAMPercentage=90.0" \
  --jvmArgsAppend="-XX:MaxRAMPercentage=90.0" \
- 2>&1 | tee "$BENCH_RESULTS/parallel.out"
+ 2>&1 | tee "$BENCH_RESULTS/parallel-jdk.out"
+
+# Run parallel benchmarks
+echo "Running parallel benchmarks (GraalVM)"
+JAVA_HOME=$GRAALVM_DIR \
+ JAR=$BENCH_PARALLEL_JAR \
+ FNAME=$BENCH_RESULTS/parallel-graalvm.json \
+ SF=$sf_par run_tpch \
+ --jvmArgsAppend="-XX:InitialRAMPercentage=90.0" \
+ --jvmArgsAppend="-XX:MaxRAMPercentage=90.0" \
+ 2>&1 | tee "$BENCH_RESULTS/parallel-graalvm.out"
 
 # Microbenchmarks run only on JDK
-export JAVA_HOME=$JDK23_DIR
+export JAVA_HOME=$JDK_DIR
 
 # Run microbenchmark (RQ1)
 echo "Running microbenchmark (RQ1)"
@@ -126,3 +138,26 @@ run_micro_rq2 "small" "1,10,20,30,40,50,60,70,80,90,100,110,120,130,140,150,160,
 
 echo "Running microbenchmark (RQ2 - large)"
 run_micro_rq2 "large" "500,10500,20500,30500,40500,50500,60500,70500,80500,90500,100500,110500,120500,130500,140500,150500,160500,170500,180500,190500,200500,210500,220500,230500,240500,250500,260500,270500,280500,290500,300500,310500,320500,330500,340500,350500,360500,370500,380500,390500,400500,410500,420500,430500,440500,450500,460500,470500,480500,490500,500500"
+
+
+# Run microbenchmark (RQ2 stateful)
+echo "Running microbenchmark (RQ2 stateful)"
+
+run_distinct() {
+  suffix=$1
+  ndistinct=$2
+
+  $JDK_DIR/bin/java \
+      -jar $BENCH_MICRO_RQ2_DISTINCT_JAR \
+      $harness -bm avgt -tu ms \
+      -rf JSON -rff "$BENCH_RESULTS/microbenchmark-distinct-$suffix.json" \
+      "Distinct" \
+      -p nDistinct="$ndistinct" \
+      2>&1 | tee "$BENCH_RESULTS/microbenchmark-distinct-$suffix.out"
+}
+
+echo "Running microbenchmark (Distinct - small)"
+run_distinct "small" "20,40,60,80,100,120,140,160,180,200,220,240,260,280,300,320,340,360,380,400,420,440,460,480,500,520,540,560,580,600,620,640,660,680,700,720,740,760,780,800,820,840,860,880,900,920,940,960,980"
+
+echo "Running microbenchmark (Distinct - large)"
+run_distinct "large" "1000,21000,41000,61000,81000,101000,121000,141000,161000,181000,201000,221000,241000,261000,281000,301000,321000,341000,361000,381000,401000,421000,441000,461000,481000,501000,521000,541000,561000,581000,601000,621000,641000,661000,681000,701000,721000,741000,761000,781000,801000,821000,841000,861000,881000,901000,921000,941000,961000,981000"

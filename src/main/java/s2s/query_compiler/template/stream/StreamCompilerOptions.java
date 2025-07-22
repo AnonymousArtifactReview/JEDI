@@ -33,7 +33,7 @@ public class StreamCompilerOptions implements CommonCompilerOption {
 
         ArrayList<StreamCompilerOptions> all = new ArrayList<>();
         for(MultiThreading multiThreading : MultiThreading.values()) {
-            all.addAll(allCombinationsMultiThreading(multiThreading));
+                all.addAll(allCombinationsMultiThreading(multiThreading));
         }
         ALL_COMBINATION = all.toArray(new StreamCompilerOptions[0]);
     }
@@ -165,10 +165,17 @@ public class StreamCompilerOptions implements CommonCompilerOption {
     }
 
     public enum MultiThreading {
-        SEQUENTIAL,
-        PARALLEL_UNORDERED,
-        CONCURRENT, // imply unordered
-        CONCURRENT_COLLECTOR; // imply unordered
+        SEQUENTIAL("SEQ"),
+        PARALLEL("P"),
+        PARALLEL_UNORDERED("PU"),
+        CONCURRENT("CG"), // imply unordered
+        CONCURRENT_COLLECTOR("CGCC"); // imply unordered
+
+        final String name;
+
+        MultiThreading(String name) {
+            this.name = name;
+        }
 
         public boolean isSequential() {
             return this == SEQUENTIAL;
@@ -184,11 +191,11 @@ public class StreamCompilerOptions implements CommonCompilerOption {
 
         @Override
         public String toString() {
-            if(this == SEQUENTIAL) return "SEQ";
-            if(this == PARALLEL_UNORDERED) return "PU";
-            if(this == CONCURRENT) return "CG";
-            if(this == CONCURRENT_COLLECTOR) return "CGCC";
-            throw new RuntimeException("Should not reach this, unexpected name" + this);
+            return name;
+        }
+
+        public boolean isOrdered() {
+            return this == SEQUENTIAL || this == PARALLEL;
         }
     }
 
@@ -204,8 +211,8 @@ public class StreamCompilerOptions implements CommonCompilerOption {
         return fuseFilters;
     }
 
-    public boolean isOrdered() {
-        return multiThreading.isSequential();
+    public boolean isUnordered() {
+        return !multiThreading.isOrdered();
     }
 
 }

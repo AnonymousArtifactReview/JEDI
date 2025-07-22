@@ -159,6 +159,25 @@ public class VarGroupSize {
     }
 
 
+    // P
+    @Benchmark
+    public Map<Integer, OneFieldMergeCollector> P_OneField() {
+        return Arrays.stream(orders).parallel()
+                .collect(Collectors.groupingBy(
+                        row -> row.id % mod,
+                        OneFieldMergeCollector.collector()
+                ));
+    }
+
+    @Benchmark
+    public Map<Integer, ManyFieldsMergeCollector> P_ManyFields() {
+        return Arrays.stream(orders).parallel()
+                .collect(Collectors.groupingBy(
+                        row -> row.id % mod,
+                        ManyFieldsMergeCollector.collector()
+                ));
+    }
+
     // PU
     @Benchmark
     public Map<Integer, OneFieldMergeCollector> PU_OneField() {

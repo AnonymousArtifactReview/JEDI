@@ -7,11 +7,11 @@ source $thisdir/_common.sh
 # TODO: test that TPC-H DuckDB test DB exists
 if [ ! -f "$BASEDIR/TPCH-duckdb/tpch.sf0.01.db" ]; then
   echo "Test DB file does not exists"
-  echo "First, run ./gen-tpch-duckdb.sh"
+  echo "First, run ./gen-tpch-data-duckdb.sh"
   exit 1
 fi
 
-export JAVA_HOME=$JDK21_DIR
+export JAVA_HOME=$JDK_DIR
 
 mvn -q clean package > /tmp/s2spackage
 if [ $? -ne 0 ]; then
@@ -68,15 +68,18 @@ generate() {
     exit 4
   fi
 
-
-  echo "Running tests..."
-  cd $BENCH_DIR
-  MAVEN_OPTS="-Xmx6g" mvn test > test.out
-  if [ $? -eq 0 ]; then
-    echo "All tests passed"
+  if [ "$SKIP_TESTS" == "true" ]; then
+    echo "Tests should not be executed"
   else
-    echo "There are failing tests."
-    echo "See $BENCH_DIR/test.out for more details"
+    echo "Running tests..."
+    cd $BENCH_DIR
+    MAVEN_OPTS="-Xmx6g" mvn test > test.out
+    if [ $? -eq 0 ]; then
+      echo "All tests passed"
+    else
+      echo "There are failing tests."
+      echo "See $BENCH_DIR/test.out for more details"
+    fi
   fi
 
   cd $BASEDIR
@@ -104,6 +107,12 @@ CLS="ConvertTPCHFilterIntensiveQuery" \
 BENCH_DIR="$BENCH_MICRO_RQ1_FOLDER" \
 generate
 
+# VarGroupSize
 echo "Compiling VaryGroupSize microbenchmark (RQ2)"
-cd microbenchmark-rq2
+cd $BENCH_MICRO_RQ2_FOLDER
+mvn -q clean package
+
+# StatefulOperation Distinct
+echo "Compiling StatefulOperation distinct (Revision)"
+cd $BENCH_MICRO_RQ2_DISTINCT_FOLDER
 mvn -q clean package

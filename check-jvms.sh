@@ -18,6 +18,5 @@ check_jvm() {
     fi
 }
 
-check_jvm "$BASEDIR/jvm/jdk21"
-check_jvm "$BASEDIR/jvm/jdk23"
-check_jvm "$BASEDIR/jvm/graalvm23"
+check_jvm "$BASEDIR/jvm/jdk24"
+check_jvm "$BASEDIR/jvm/graalvm24"
